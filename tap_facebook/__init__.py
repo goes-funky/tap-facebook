@@ -708,6 +708,7 @@ def do_discover():
 def main_impl():
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
     account_id = args.config['account_id']
+    account_ids = account_id.split(",")
     access_token = args.config['access_token']
 
     CONFIG.update(args.config)
@@ -719,18 +720,20 @@ def main_impl():
     API = FacebookAdsApi.init(access_token=access_token)
     user = fb_user.User(fbid='me')
     accounts = user.get_ad_accounts()
-    account = None
+    selected_accounts = []
     for acc in accounts:
-        if acc['account_id'] == account_id:
-            account = acc
-    if not account:
+        if acc['account_id'] in account_ids:
+            selected_accounts.append(acc)
+    if len(selected_accounts) < 1:
         raise TapFacebookException("Couldn't find account with id {}".format(account_id))
 
     if args.discover:
         do_discover()
     elif args.properties:
         catalog = Catalog.from_dict(args.properties)
-        do_sync(account, catalog, args.state)
+        for account in selected_accounts:
+            singer.logger.log_info("syncing account " + str(account["account_id"]))
+            do_sync(account, catalog, args.state)
     else:
         LOGGER.info("No properties were selected")
 

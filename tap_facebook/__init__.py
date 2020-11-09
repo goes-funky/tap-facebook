@@ -502,6 +502,7 @@ class AdsInsights(Stream):
             is_async=True)
         status = None
         time_start = time.time()
+
         sleep_time = 10
         while status != "Job Completed":
             duration = time.time() - time_start
@@ -660,7 +661,7 @@ def load_schema(stream):
     return schema
 
 
-def initialize_streams_for_discovery(): # pylint: disable=invalid-name
+def ahinitialize_streams_for_discovery(): # pylint: disable=invalid-name
     return [initialize_stream(None, CatalogEntry(stream=name), None)
             for name in STREAMS]
 
@@ -743,6 +744,13 @@ def main():
         main_impl()
     except TapFacebookException as e:
         LOGGER.critical(e)
+        sys.exit(1)
+    except FacebookRequestError as e:
+        clean_info = {
+            "status": e.http_status(),
+            "error": e.api_error_message()
+        }
+        LOGGER.critical("Request Error {}".format(json.dumps(clean_info)))
         sys.exit(1)
     except Exception as e:
         LOGGER.exception(e)

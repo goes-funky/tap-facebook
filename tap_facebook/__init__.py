@@ -661,7 +661,7 @@ def load_schema(stream):
     return schema
 
 
-def ahinitialize_streams_for_discovery(): # pylint: disable=invalid-name
+def initialize_streams_for_discovery(): # pylint: disable=invalid-name
     return [initialize_stream(None, CatalogEntry(stream=name), None)
             for name in STREAMS]
 
